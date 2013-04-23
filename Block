@@ -1,0 +1,101 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.GamerServices;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
+
+namespace WindowsGame1
+{   
+    class Block : Microsoft.Xna.Framework.Game
+    {
+        const int squareSize = 16;
+        Vector2[] blockPosition = new Vector2[4];
+        Color _color;
+
+        int MaxX = 196;
+        int MinX = 56;
+        int MaxY = 386;
+
+        public Block()
+        {
+            Content.RootDirectory = "Content";
+            blockPosition[0] = new Vector2(100, 50);
+            blockPosition[1] = new Vector2(100 + squareSize, 50);
+            blockPosition[2] = new Vector2(100, 50 + squareSize);
+            blockPosition[3] = new Vector2(100 + squareSize, 50 + squareSize);
+            _color = Color.Black;
+        }
+
+        public Color getColor()
+        {
+            return _color;
+        }
+
+        public Vector2 getPos(int pos)
+        {
+            return blockPosition[pos];
+        }
+
+        public void blockFall()
+        {
+            if (!bottom())
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    blockPosition[i].Y += squareSize;
+                }
+            }           
+        }
+
+        public Boolean bottom()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (blockPosition[i].Y >= MaxY)
+                    return true;
+            }
+            return false;
+        }
+
+        public Boolean leftWallCheck()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (blockPosition[i].X <= MinX)
+                    return true;
+            }
+            return false;
+        }
+
+        public Boolean rightWallCheck()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (blockPosition[i].X >= MaxX)
+                    return true;
+            }
+            return false;
+        }
+
+        public void shiftLeft()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                blockPosition[i].X -= squareSize;
+            }
+        }
+
+        public void shiftRight()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                blockPosition[i].X += squareSize;
+            }
+        }
+    }
+}
