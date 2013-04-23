@@ -1,0 +1,164 @@
+// This program was made for Module 2 of the Spring 2013 Console Development course at Rasmussen
+// The purpose of this program is to show the progress of the XNA Tetris Project by demonstrating a moving block inside a game "bucket".
+// Created by Jason Ballard
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.GamerServices;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
+
+
+namespace WindowsGame1
+{
+
+    public class Game1 : Microsoft.Xna.Framework.Game
+    {
+
+        // Declaring my variables, most of which consist of Texture objects and Vector objects to store coordinates for the Textures.
+
+        GraphicsDeviceManager graphics;
+        SpriteBatch spriteBatch;
+        Texture2D block;
+        Texture2D bucket;
+        Vector2 blockPos = Vector2.Zero;
+        Vector2 bucketPos = Vector2.Zero;
+        KeyboardState keypress;
+        int height = 500;
+        int width = 350;
+        double frameRate = 60;
+        double keyTimer = 0f;
+        double blockFallTimer = 0f;
+        double speed = 5;
+        Block b1;
+
+        
+        public Game1()
+        {
+            graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
+        }
+
+        // Initializing my variables.  I set the initial positions of the bucket Texture and block Texture.
+        // I also get a beginning keypress state for my KeyboardState object.
+        protected override void Initialize()
+        {
+            graphics.PreferredBackBufferHeight = height;
+            graphics.PreferredBackBufferWidth = width;
+            blockPos.X = 100;
+            blockPos.Y = 50;
+
+            bucketPos.X = 49;
+            bucketPos.Y = 50;
+
+            keypress = Keyboard.GetState();
+            graphics.ApplyChanges();
+
+            b1 = new Block();
+                        
+            base.Initialize();
+            
+        }
+
+        // Loading the sprites from the Content location within the project.  I made the Block and Bucket sprites in MSPaint.
+
+        protected override void LoadContent()
+        {                    
+
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            block = Content.Load<Texture2D>("Block");
+            bucket = Content.Load<Texture2D>("Bucket");
+        }
+
+
+        protected override void UnloadContent()
+        {
+
+        }
+
+        //The main Update method where I update the block Texture positions when a key is pressed.
+
+        protected override void Update(GameTime gameTime)
+        {
+            // Allows the game to exit
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keypress.IsKeyDown(Keys.Escape))
+                this.Exit();
+            
+
+            
+            // I use my keyTimer value derived from the total gameTime elapsed and check it against the frameRate value.
+            // If enough time has passed, I allow for input to be detected and then I reset the keyTimer value to 0.
+            
+            keyTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
+            
+            if (keyTimer > frameRate)
+            {
+                keyTimer = 0f;
+
+                // Here I get the current Keyboard state and check if W, S, A, D or the Arrow Keys are being pressed.
+                // If any are pressed, the block sprite is moved 32 pixels in the appropriate direction.
+                keypress = Keyboard.GetState();
+                if (keypress.IsKeyDown(Keys.W) || keypress.IsKeyDown(Keys.Up))
+                {
+                    blockPos.Y -= 16;
+                }
+                if (keypress.IsKeyDown(Keys.S) || keypress.IsKeyDown(Keys.Down))
+                {
+                    blockPos.Y += 16;
+                }
+                if ((keypress.IsKeyDown(Keys.A) || keypress.IsKeyDown(Keys.Left)) && !b1.leftWallCheck())
+                {
+                    b1.shiftLeft();
+                }
+                if ((keypress.IsKeyDown(Keys.D) || keypress.IsKeyDown(Keys.Right)) && !b1.rightWallCheck())
+                {
+                    b1.shiftRight();
+                }
+                
+            }
+
+            // Similar to the block movement, I check the blockFallTimer value against the framerate * speed and automatically move the block down.
+            // This simulates the normal Tetris block fall feature in any Tetris game.
+
+            blockFallTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
+
+            if (blockFallTimer > frameRate * speed)
+            {
+                blockFallTimer = 0f;
+                b1.blockFall();
+            }
+                       
+
+            // Here I check for the boundaries of the inside of the bucket using the variables I set earlier.
+            
+            base.Update(gameTime);
+        }
+
+        // Lastly, the game information is Drawn to the screen.
+
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.CadetBlue);
+            spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+            spriteBatch.Draw(bucket, bucketPos,Color.CadetBlue);
+            spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+            //spriteBatch.Draw(block, blockPos, Color.Brown);
+            for (int x = 0; x < 4; x++)
+            {
+                spriteBatch.Draw(block, b1.getPos(x), b1.getColor());
+            }
+            
+            spriteBatch.End();
+            base.Draw(gameTime);
+            
+        }
+        
+    }
+}
