@@ -2,17 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.GamerServices;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Media;
 
 namespace WindowsGame1
-{   
-    class Block : Microsoft.Xna.Framework.Game
+{
+    enum BlockType { Box = 0, L, J, T, Line, S, Z }
+    
+    public class Block : Microsoft.Xna.Framework.Game
     {
+
         const int squareSize = 16;
         Vector2[] blockPosition = new Vector2[4];
         Color _color;
@@ -20,15 +17,75 @@ namespace WindowsGame1
         int MaxX = 196;
         int MinX = 56;
         int MaxY = 386;
+        BlockType type;
+        
 
-        public Block()
+        public Block(Random r)
         {
-            Content.RootDirectory = "Content";
-            blockPosition[0] = new Vector2(100, 50);
-            blockPosition[1] = new Vector2(100 + squareSize, 50);
-            blockPosition[2] = new Vector2(100, 50 + squareSize);
-            blockPosition[3] = new Vector2(100 + squareSize, 50 + squareSize);
-            _color = Color.Black;
+            generateBlock(r);
+            initializeBlock();
+        }
+
+        public void generateBlock(Random r)
+        {
+            int rNum = r.Next(0, 7);
+            type = (BlockType)rNum;
+        }
+
+        public void initializeBlock()
+        {
+            switch (type)
+            {
+                case BlockType.Box:
+                    blockPosition[0] = new Vector2(100, 50);
+                    blockPosition[1] = new Vector2(100 + squareSize, 50);
+                    blockPosition[2] = new Vector2(100, 50 + squareSize);
+                    blockPosition[3] = new Vector2(100 + squareSize, 50 + squareSize);
+                    _color = Color.Black;
+                    break;
+                case BlockType.J:
+                    blockPosition[0] = new Vector2(100, 50);
+                    blockPosition[1] = new Vector2(100, 50 + squareSize);
+                    blockPosition[2] = new Vector2(100, 50 + squareSize*2);
+                    blockPosition[3] = new Vector2(100 - squareSize, 50 + squareSize*2);
+                    _color = Color.Red;
+                    break;
+                case BlockType.L:
+                    blockPosition[0] = new Vector2(100, 50);
+                    blockPosition[1] = new Vector2(100, 50 + squareSize);
+                    blockPosition[2] = new Vector2(100, 50 + squareSize*2);
+                    blockPosition[3] = new Vector2(100 + squareSize, 50 + squareSize*2);
+                    _color = Color.Yellow;
+                    break;
+                case BlockType.Line:
+                    blockPosition[0] = new Vector2(100, 50);
+                    blockPosition[1] = new Vector2(100, 50 + squareSize);
+                    blockPosition[2] = new Vector2(100, 50 + squareSize*2);
+                    blockPosition[3] = new Vector2(100, 50 + squareSize*3);
+                    _color = Color.Orange;
+                    break;
+                case BlockType.T:
+                    blockPosition[0] = new Vector2(100, 50);
+                    blockPosition[1] = new Vector2(100 - squareSize, 50);
+                    blockPosition[2] = new Vector2(100 + squareSize, 50);
+                    blockPosition[3] = new Vector2(100, 50 + squareSize);
+                    _color = Color.LimeGreen;
+                    break;
+                case BlockType.S:
+                    blockPosition[0] = new Vector2(100, 50);
+                    blockPosition[1] = new Vector2(100 + squareSize, 50);
+                    blockPosition[2] = new Vector2(100, 50 + squareSize);
+                    blockPosition[3] = new Vector2(100 - squareSize, 50 + squareSize);
+                    _color = Color.Purple;
+                    break;
+                case BlockType.Z:
+                    blockPosition[0] = new Vector2(100, 50);
+                    blockPosition[1] = new Vector2(100 - squareSize, 50);
+                    blockPosition[2] = new Vector2(100, 50 + squareSize);
+                    blockPosition[3] = new Vector2(100 + squareSize, 50 + squareSize);
+                    _color = Color.SeaShell;
+                    break;
+            }
         }
 
         public Color getColor()
