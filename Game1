@@ -16,8 +16,7 @@ using Microsoft.Xna.Framework.Media;
 
 
 namespace WindowsGame1
-{
-
+{    
     public class Game1 : Microsoft.Xna.Framework.Game
     {
 
@@ -25,24 +24,36 @@ namespace WindowsGame1
 
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        Texture2D block;
+        Texture2D texBlock;
         Texture2D bucket;
         Vector2 blockPos = Vector2.Zero;
         Vector2 bucketPos = Vector2.Zero;
-        KeyboardState keypress;
+        KeyboardState currentKey;
+        KeyboardState oldKey;
         int height = 500;
         int width = 350;
-        double frameRate = 60;
+        double frameRate = 60f;
         double keyTimer = 0f;
         double blockFallTimer = 0f;
         double speed = 5;
-        Block b1;
-
+        bool newBlock = false;
+        Random r;
+        public Block b1;
+        List<Block> savedBlocks;
+        
         
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+        }
+
+        public void drawBlock(Block block)
+        {
+            for (int x = 0; x < 4; x++)
+            {
+                spriteBatch.Draw(texBlock, block.getPos(x), block.getColor());
+            }
         }
 
         // Initializing my variables.  I set the initial positions of the bucket Texture and block Texture.
@@ -56,11 +67,12 @@ namespace WindowsGame1
 
             bucketPos.X = 49;
             bucketPos.Y = 50;
-
-            keypress = Keyboard.GetState();
+            r = new Random();
+            oldKey = Keyboard.GetState();
             graphics.ApplyChanges();
 
-            b1 = new Block();
+            b1 = new Block(r);
+            savedBlocks = new List<Block>();
                         
             base.Initialize();
             
@@ -72,7 +84,7 @@ namespace WindowsGame1
         {                    
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            block = Content.Load<Texture2D>("Block");
+            texBlock = Content.Load<Texture2D>("Block");
             bucket = Content.Load<Texture2D>("Bucket");
         }
 
@@ -86,42 +98,49 @@ namespace WindowsGame1
 
         protected override void Update(GameTime gameTime)
         {
-            // Allows the game to exit
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keypress.IsKeyDown(Keys.Escape))
-                this.Exit();
-            
 
-            
+            // Allows the game to exit
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || currentKey.IsKeyDown(Keys.Escape))
+                this.Exit();
+
+            if (newBlock)
+            {
+                b1 = new Block(r);
+                newBlock = false;
+            }
+            currentKey = Keyboard.GetState();
+
             // I use my keyTimer value derived from the total gameTime elapsed and check it against the frameRate value.
             // If enough time has passed, I allow for input to be detected and then I reset the keyTimer value to 0.
             
             keyTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
             
-            if (keyTimer > frameRate)
-            {
-                keyTimer = 0f;
-
+                            
                 // Here I get the current Keyboard state and check if W, S, A, D or the Arrow Keys are being pressed.
                 // If any are pressed, the block sprite is moved 32 pixels in the appropriate direction.
-                keypress = Keyboard.GetState();
-                if (keypress.IsKeyDown(Keys.W) || keypress.IsKeyDown(Keys.Up))
+
+
+                if (currentKey.IsKeyDown(Keys.W) || currentKey.IsKeyDown(Keys.Up))
                 {
-                    blockPos.Y -= 16;
+                    //blockPos.Y -= 16;
                 }
-                if (keypress.IsKeyDown(Keys.S) || keypress.IsKeyDown(Keys.Down))
+                if ((currentKey.IsKeyDown(Keys.S) || currentKey.IsKeyDown(Keys.Down)) && !b1.bottom() && oldKey.IsKeyUp(Keys.S) && keyTimer > frameRate)
                 {
-                    blockPos.Y += 16;
+                    for (int x = 0; x < 4; x++)
+                        b1.blockFall();
                 }
-                if ((keypress.IsKeyDown(Keys.A) || keypress.IsKeyDown(Keys.Left)) && !b1.leftWallCheck())
+                if ((currentKey.IsKeyDown(Keys.A) || currentKey.IsKeyDown(Keys.Left)) && !b1.leftWallCheck() && oldKey.IsKeyUp(Keys.A) && keyTimer > frameRate)
                 {
                     b1.shiftLeft();
+                    keyTimer = 0f;
                 }
-                if ((keypress.IsKeyDown(Keys.D) || keypress.IsKeyDown(Keys.Right)) && !b1.rightWallCheck())
+                if ((currentKey.IsKeyDown(Keys.D) || currentKey.IsKeyDown(Keys.Right)) && !b1.rightWallCheck() && oldKey.IsKeyUp(Keys.D) && keyTimer > frameRate)
                 {
                     b1.shiftRight();
-                }
+                    keyTimer = 0f;
+                }                               
                 
-            }
+            
 
             // Similar to the block movement, I check the blockFallTimer value against the framerate * speed and automatically move the block down.
             // This simulates the normal Tetris block fall feature in any Tetris game.
@@ -133,10 +152,17 @@ namespace WindowsGame1
                 blockFallTimer = 0f;
                 b1.blockFall();
             }
-                       
+
+
+            if (b1.bottom())
+            {
+                savedBlocks.Add(b1);
+                newBlock = true;
+            }
 
             // Here I check for the boundaries of the inside of the bucket using the variables I set earlier.
-            
+            oldKey = currentKey;
+
             base.Update(gameTime);
         }
 
@@ -149,16 +175,15 @@ namespace WindowsGame1
             spriteBatch.Draw(bucket, bucketPos,Color.CadetBlue);
             spriteBatch.End();
             spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
-            //spriteBatch.Draw(block, blockPos, Color.Brown);
-            for (int x = 0; x < 4; x++)
+            drawBlock(b1);
+            foreach (Block s_block in savedBlocks)
             {
-                spriteBatch.Draw(block, b1.getPos(x), b1.getColor());
-            }
-            
+                drawBlock(s_block);
+            }            
             spriteBatch.End();
-            base.Draw(gameTime);
-            
-        }
-        
+            base.Draw(gameTime);            
+        }       
+
     }
+
 }
